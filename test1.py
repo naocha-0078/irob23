@@ -3,12 +3,13 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
-class Mobrob(QWidget):
-    def __init__():
+class Mobrob(QMainWindow):
+    def __init__(self):
+        super().__init__()
         self.initUI()
 
     def initUI(self):
-        self.setGeometory(0, 0, 800, 800)
+        self.setGeometry(0, 0, 800, 800)
         self.label = QLabel()
         canvas = QPixmap(800, 800)
         self.label.setPixmap(canvas)
