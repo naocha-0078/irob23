@@ -1,4 +1,28 @@
 import numpy as np
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+
+class Mobrob(QWidget):
+    def __init__():
+        self.initUI()
+
+    def initUI(self):
+        self.setGeometory(0, 0, 800, 800)
+        self.label = QLabel()
+        canvas = QPixmap(800, 800)
+        self.label.setPixmap(canvas)
+        self.setCentralWidget(self.label)
+        self.draw()
+        self.show()
+
+    def draw(self):
+        p = QPainter(self.label.pixmap())
+        p.setBrush(QColor(0x00ffff))
+        p.drawEllipse(200, 300, 400, 200)
+        p.end()
+
+
 
 B = 0.342                   #トレッド
 p0= np.array([[1],[0.5],[0]]) #真値
@@ -14,3 +38,7 @@ def move_robo(p, dsl, dsr):
 
 print(p0)
 print(move_robo(p0, 1, 0.5))
+
+app = QApplication(sys.argv)
+mb = Mobrob()
+app.exec()
