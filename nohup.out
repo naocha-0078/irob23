@@ -4,3 +4,9 @@ Fatal server error:
 	If this server is no longer running, remove /tmp/.X1-lock
 	and start again.
 (EE) 
+(EE) 
+Fatal server error:
+(EE) Server is already active for display 1
+	If this server is no longer running, remove /tmp/.X1-lock
+	and start again.
+(EE) 
