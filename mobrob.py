@@ -1,10 +1,10 @@
+from PyQt5.QtGui import QKeyEvent
 import numpy as np
 import numpy.linalg as la
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-
 
 
 WIDTH = 800 
@@ -23,30 +23,85 @@ class Mobrob(QMainWindow):
         super().__init__()
         self.p0= np.array([[1],[0.5],[0.2]])    #真値
         self.p = np.array(self.p0)              #推定値
-        self.sp = np.array(self.p0)
-        self.sp = np.array([1, -0.2, 0],[-0.2, 0.5, 0],[0, 0, 0.1])
+        self.sp = np.diag([1, 1, 0.1]) #sigma_p
+        self.dsl = 0.0
+        self.dsr = 0.0
         self.initUI()
         self.timer = QTimer()
         self.timer.setInterval(1000 // 60)
         self.timer.timeout.connect(self.step)
         self.timer.start()
+        self.setFocusPolicy(Qt.StrongFocus)
+        
 
     def step(self):
-        self.p0[0,0] += 0.01
+        self.p0 = move_robot(self.p0, self.dsl, self.dsr)
+        self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), 
+                            self.dsr * (1 + np.random.randn() * 0.01)
+        )
+
+        #prediction update
+        tt = self.p[2, 0] + (self.dsr - self.dsl) / 2 / B
+        jp = np.array([                                 #Jacobian p
+            [1, 0, -(self.dsr + self.dsl) / 2 * np.sin(tt)],
+            [0, 1,  (self.dsr + self.dsl) / 2 * np.cos(tt)],
+            [0, 0, 1]
+        ])
+
+        ju = np.array([                                 
+            [np.cos(tt) / 2 - (self.dsr + self.dsl) / 4 / B * np.sin(tt),
+             np.cos(tt) / 2 + (self.dsr + self.dsl) / 4 / B * np.sin(tt)],
+            [np.sin(tt) / 2 + (self.dsr + self.dsl) / 4 / B * np.cos(tt),
+             np.sin(tt) / 2 - (self.dsr + self.dsl) / 4 / B * np.cos(tt)],
+            [1 / B, -1 / B]
+        ])
+
+        su = np.diag([np.abs(self.dsr * 0.1),np.abs(self.dsl * 0.1)])
+        self.sp = jp.dot(self.sp).dot(jp.T) + ju.dot(su).dot(ju.T)
+
         self.draw()
         self.update()
 
     def initUI(self):
-        self.setGeometry(0, 0, WIDTH, HEIGHT)
+        widget = QWidget()
+        layout = QVBoxLayout()
+        widget.setLayout(layout)
         self.label = QLabel()
-        canvas = QPixmap(800, 800)
+        canvas = QPixmap(WIDTH, HEIGHT)
         self.label.setPixmap(canvas)
-        self.setCentralWidget(self.label)
-        self.draw()
+        button = QPushButton("quit")
+        button.clicked.connect(lambda: sys.exit(0))
+        layout.addWidget(self.label)
+        layout.addWidget(button)
+        self.setCentralWidget(widget)
         self.show()
+
+
+
+    def keyPressEvent(self, ev: QKeyEvent | None) -> None:
+        key = ev.key()
+        if key == Qt.Key.Key_Escape: sys.exit(0)
+        elif key == Qt.Key.Key_Right:
+            self.dsl += 0.001
+            self.dsr -= 0.001
+        elif key == Qt.Key.Key_Left:
+            self.dsl -= 0.001
+            self.dsr += 0.001
+        elif key == Qt.Key.Key_Up:
+            self.dsl += 0.001
+            self.dsr += 0.001
+        elif key == Qt.Key.Key_Down:
+            self.dsl -= 0.001
+            self.dsr -= 0.001
+        elif key == Qt.Key.Key_Space:
+            self.dsl = 0
+            self.dsr = 0
+        return super().keyPressEvent(ev)
+
 
     def draw(self):
         p = QPainter(self.label.pixmap())
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         p.eraseRect(0, 0, WIDTH, HEIGHT)
         p.setBrush(QColor(0x00ffff))
         p.drawEllipse(
@@ -56,11 +111,11 @@ class Mobrob(QMainWindow):
            int(B * PX_PER_M)
         )
 
-        p.drrawLine(   #ロボットの向いている方向
+        p.drawLine(   #ロボットの向いている方向
             int(_x(self.p0[0,0])),
             int(_y(self.p0[1,0])),
-            int(_x(self.p0[0,0]) + np.cos(self.p0[2, 0] * 0.5)),
-            int(_y(self.p0[1,0]) + np.sin(self.p0[2, 0] * 0.5))
+            int(_x(self.p0[0,0] + np.cos(self.p0[2, 0]) * 0.5)),
+            int(_y(self.p0[1,0] + np.sin(self.p0[2, 0]) * 0.5))
         )
 
         #Σの楕円
@@ -85,10 +140,16 @@ class Mobrob(QMainWindow):
 
 
 def move_robot(p, dsl, dsr):
-    dt = (dsr - dsl) / B
-    r = (dsl + dsr) / (2*dt)
-    dx = 2*r *np.sin(dt / 2) * np.cos(p[2,0] + dt /2)
-    dy = 2*r *np.sin(dt / 2) * np.sin(p[2,0] + dt /2)
+    if dsl != dsr:
+        dt = (dsr - dsl) / B
+        r = (dsl + dsr) / (2*dt)
+        dx = 2*r *np.sin(dt / 2) * np.cos(p[2,0] + dt /2)
+        dy = 2*r *np.sin(dt / 2) * np.sin(p[2,0] + dt /2)
+        print(dx, dy, dt, p.shape)
+    else:
+        dt = 0
+        dx = dsl * np.cos(p[2, 0])
+        dy = dsr * np.sin(p[2, 0])
 
     return p + np.array([[dx],[dy],[dt]])
 
