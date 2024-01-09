@@ -1,7 +1,6 @@
 import gymnasium as gym
 env = gym.make("MountainCar-v0", render_mode="human")
 
-<<<<<<< HEAD
 lr = 0.99  #learning rate
 gamma = 1  #割引率
 pdiv, vdiv = 10, 10
@@ -31,14 +30,4 @@ for i in range(100000):
     if terminated or truncated:
         obs, info = env.reset()
 
-=======
-obs, info = env.reset()
-for _ in range(1000):
-    env.render()
-    action = env.action_space.sample()
-    obs, reward, terminated, truncated, info = env.step(action)
-
-    if term or truncated:
-        obs, info = env.reset()
->>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
 env.close()

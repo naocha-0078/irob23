@@ -50,13 +50,9 @@ class Mobrob(QMainWindow):
 
     def step(self):
         self.p0 = move_robot(self.p0, self.dsl, self.dsr)
-<<<<<<< HEAD
-        self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), self.dsr * (1 + np.random.randn() * 0.01))
-=======
         self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), 
                             self.dsr * (1 + np.random.randn() * 0.01)
         )
->>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
 
         #prediction update
         tt = self.p[2, 0] + (self.dsr - self.dsl) / 2 / B
@@ -105,35 +101,17 @@ class Mobrob(QMainWindow):
 
         self.show()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
         #自己位置pの表示
         self.text_label = QLabel()
         self.text_label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
         layout.addWidget(self.text_label)
         
->>>>>>> a465e0534ea6649fef13d33b29e3b62d8355a747
 
->>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
+
     def keyPressEvent(self, ev: QKeyEvent | None) -> None:
         key = ev.key()
         if key == Qt.Key.Key_Escape: sys.exit(0)
         elif key == Qt.Key.Key_Right:
-<<<<<<< HEAD
-            self.dsl += 0.005
-            self.dsr -= 0.005
-        elif key == Qt.Key.Key_Left:
-            self.dsl -= 0.005
-            self.dsr += 0.005
-        elif key == Qt.Key.Key_Up:
-            self.dsl += 0.005
-            self.dsr += 0.005
-        elif key == Qt.Key.Key_Down:
-            self.dsl -= 0.005
-            self.dsr -= 0.005
-=======
             self.dsl += 0.001
             self.dsr -= 0.001
         elif key == Qt.Key.Key_Left:
@@ -151,11 +129,6 @@ class Mobrob(QMainWindow):
             
         #停止
         elif key == Qt.Key.Key_Space:
-<<<<<<< HEAD
-            self.dsl = 0
-            self.dsr = 0
->>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
-=======
             self.dsl = 0.0
             self.dsr = 0.0
         #自己位置推定領域リセット
@@ -170,7 +143,6 @@ class Mobrob(QMainWindow):
             self.dsr = 0.0
         
 
->>>>>>> a465e0534ea6649fef13d33b29e3b62d8355a747
         return super().keyPressEvent(ev)
 
 
