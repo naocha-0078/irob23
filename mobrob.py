@@ -31,10 +31,18 @@ class Mobrob(QMainWindow):
         self.timer.setInterval(1000 // 60)
         self.timer.timeout.connect(self.step)
         self.timer.start()
+        self.setFocusPolicy(Qt.StrongFocus)
+        
 
     def step(self):
         self.p0 = move_robot(self.p0, self.dsl, self.dsr)
+<<<<<<< HEAD
         self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), self.dsr * (1 + np.random.randn() * 0.01))
+=======
+        self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), 
+                            self.dsr * (1 + np.random.randn() * 0.01)
+        )
+>>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
 
         #prediction update
         tt = self.p[2, 0] + (self.dsr - self.dsl) / 2 / B
@@ -73,10 +81,15 @@ class Mobrob(QMainWindow):
         self.show()
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
     def keyPressEvent(self, ev: QKeyEvent | None) -> None:
         key = ev.key()
         if key == Qt.Key.Key_Escape: sys.exit(0)
         elif key == Qt.Key.Key_Right:
+<<<<<<< HEAD
             self.dsl += 0.005
             self.dsr -= 0.005
         elif key == Qt.Key.Key_Left:
@@ -88,6 +101,22 @@ class Mobrob(QMainWindow):
         elif key == Qt.Key.Key_Down:
             self.dsl -= 0.005
             self.dsr -= 0.005
+=======
+            self.dsl += 0.001
+            self.dsr -= 0.001
+        elif key == Qt.Key.Key_Left:
+            self.dsl -= 0.001
+            self.dsr += 0.001
+        elif key == Qt.Key.Key_Up:
+            self.dsl += 0.001
+            self.dsr += 0.001
+        elif key == Qt.Key.Key_Down:
+            self.dsl -= 0.001
+            self.dsr -= 0.001
+        elif key == Qt.Key.Key_Space:
+            self.dsl = 0
+            self.dsr = 0
+>>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
         return super().keyPressEvent(ev)
 
 
@@ -106,8 +135,8 @@ class Mobrob(QMainWindow):
         p.drawLine(   #ロボットの向いている方向
             int(_x(self.p0[0,0])),
             int(_y(self.p0[1,0])),
-            int(_x(self.p0[0,0]) + np.cos(self.p0[2, 0] * 0.5)),
-            int(_y(self.p0[1,0]) + np.sin(self.p0[2, 0] * 0.5))
+            int(_x(self.p0[0,0] + np.cos(self.p0[2, 0]) * 0.5)),
+            int(_y(self.p0[1,0] + np.sin(self.p0[2, 0]) * 0.5))
         )
 
         #Σの楕円

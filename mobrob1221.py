@@ -31,6 +31,11 @@ class MobRob(QMainWindow):
     self.timer.setInterval(1000 // 60)
     self.timer.timeout.connect(self.step)
     self.timer.start()
+<<<<<<< HEAD
+=======
+    self.setFocusPolicy(Qt.StrongFocus)
+
+>>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
 
   def step(self):
     self.p0 = move_robot(self.p0, self.dsl, self.dsr)
@@ -76,6 +81,7 @@ class MobRob(QMainWindow):
     key = ev.key()
     if key == Qt.Key.Key_Escape: sys.exit(0)
     elif key == Qt.Key.Key_Right:
+<<<<<<< HEAD
       self.dsl += 0.005
       self.dsr -= 0.005
     elif key == Qt.Key.Key_Left:
@@ -87,6 +93,19 @@ class MobRob(QMainWindow):
     elif key == Qt.Key.Key_Down:
       self.dsl -= 0.005
       self.dsr -= 0.005
+=======
+      self.dsl += 0.001
+      self.dsr -= 0.001
+    elif key == Qt.Key.Key_Left:
+      self.dsl -= 0.001
+      self.dsr += 0.001
+    elif key == Qt.Key.Key_Up:
+      self.dsl += 0.001
+      self.dsr += 0.001
+    elif key == Qt.Key.Key_Down:
+      self.dsl -= 0.001
+      self.dsr -= 0.001
+>>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
     
     return super().keyPressEvent(ev)
 
