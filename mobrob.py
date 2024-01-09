@@ -1,3 +1,13 @@
+#知能ロボティクス論　第9回
+
+#課題　ロボットシミュレーションの機能拡張
+
+#１　GUIのサイズ変更
+#２　ロボットのサイズと自己位置推定領域のサイズ変更（縮小2分の1）
+#３　キーイベントの追加（停止、自己位置推定領域リセット、allリセット）
+#４　自己位置pのテキスト表示
+
+
 from PyQt5.QtGui import QKeyEvent
 import numpy as np
 import numpy.linalg as la
@@ -7,8 +17,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 
-WIDTH = 800 
-HEIGHT = 800 
+#画面のサイズ変更
+# WIDTH = 800
+# HEIGHT = 800
+WIDTH = 1830 
+HEIGHT = 900 
+
 PX_PER_M = WIDTH / 10
 B = 0.342   #トレッド
 
@@ -21,7 +35,7 @@ def _y(y):
 class Mobrob(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.p0= np.array([[1],[0.5],[0.2]])    #真値
+        self.p0= np.array([[0],[0],[0]])    #真値
         self.p = np.array(self.p0)              #推定値
         self.sp = np.diag([1, 1, 0.1]) #sigma_p
         self.dsl = 0.0
@@ -63,8 +77,18 @@ class Mobrob(QMainWindow):
         su = np.diag([np.abs(self.dsr * 0.1),np.abs(self.dsl * 0.1)])
         self.sp = jp.dot(self.sp).dot(jp.T) + ju.dot(su).dot(ju.T)
 
+
         self.draw()
         self.update()
+
+        #テキストの更新
+        self.update_text_label()
+
+    #テキスト更新用の関数
+    def update_text_label(self):
+        text = f"p: {self.p}"
+        self.text_label.setText(text)
+
 
     def initUI(self):
         widget = QWidget()
@@ -78,11 +102,19 @@ class Mobrob(QMainWindow):
         layout.addWidget(self.label)
         layout.addWidget(button)
         self.setCentralWidget(widget)
+
         self.show()
 
-
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+        #自己位置pの表示
+        self.text_label = QLabel()
+        self.text_label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
+        layout.addWidget(self.text_label)
+        
+>>>>>>> a465e0534ea6649fef13d33b29e3b62d8355a747
 
 >>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
     def keyPressEvent(self, ev: QKeyEvent | None) -> None:
@@ -113,10 +145,32 @@ class Mobrob(QMainWindow):
         elif key == Qt.Key.Key_Down:
             self.dsl -= 0.001
             self.dsr -= 0.001
+
+
+        #キーイベント追加
+            
+        #停止
         elif key == Qt.Key.Key_Space:
+<<<<<<< HEAD
             self.dsl = 0
             self.dsr = 0
 >>>>>>> 68924db8ab194964ed9c8d5d58737deffb95dd29
+=======
+            self.dsl = 0.0
+            self.dsr = 0.0
+        #自己位置推定領域リセット
+        elif key == Qt.Key.Key_Backspace:
+            self.sp = np.diag([1, 1, 0.1]) #reset sigma_p
+        #allリセット
+        elif key == Qt.Key.Key_R:
+            self.p0= np.array([[0],[0],[0]])    #真値
+            self.p = np.array(self.p0)              #推定値
+            self.sp = np.diag([1, 1, 0.1]) #sigma_p
+            self.dsl = 0.0
+            self.dsr = 0.0
+        
+
+>>>>>>> a465e0534ea6649fef13d33b29e3b62d8355a747
         return super().keyPressEvent(ev)
 
 
@@ -125,11 +179,21 @@ class Mobrob(QMainWindow):
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         p.eraseRect(0, 0, WIDTH, HEIGHT)
         p.setBrush(QColor(0x00ffff))
+
+        # ロボットサイズ更更
+
+        # p.drawEllipse(
+        #     int(_x(self.p0[0, 0] - B / 2)),
+        #     int(_y(self.p0[1, 0] + B / 2)),
+        #     int(B * PX_PER_M),
+        #     int(B * PX_PER_M)
+        # )
+
         p.drawEllipse(
-           int(_x(self.p0[0,0] - B / 2)),
-           int(_y(self.p0[1,0] + B / 2)),
-           int(B * PX_PER_M),
-           int(B * PX_PER_M)
+            int(_x(self.p0[0,0] - B / 4)),
+            int(_y(self.p0[1,0] + B / 4)),
+            int(B * PX_PER_M / 2),
+            int(B * PX_PER_M / 2)
         )
 
         p.drawLine(   #ロボットの向いている方向
@@ -138,6 +202,7 @@ class Mobrob(QMainWindow):
             int(_x(self.p0[0,0] + np.cos(self.p0[2, 0]) * 0.5)),
             int(_y(self.p0[1,0] + np.sin(self.p0[2, 0]) * 0.5))
         )
+        
 
         #Σの楕円
         sxy = self.sp[0:2, 0:2]
@@ -149,15 +214,23 @@ class Mobrob(QMainWindow):
         xs = list(x[0])
         ys = list(x[1])
         for i in range(len(xs) - 1):
+
+            #自己位置推定領域サイズ変更
+            # p.drawLine(
+            #     int(_x(self.p0[0, 0] + xs[i])),
+            #     int(_y(self.p0[1, 0] + ys[i])),
+            #     int(_x(self.p0[0, 0] + xs[i + 1])),
+            #     int(_y(self.p0[1, 0] + ys[i + 1]))
+            # )
+
             p.drawLine(
-                int(_x(self.p0[0,0] + xs[i])),
-                int(_y(self.p0[1,0] + ys[i])),
-                int(_x(self.p0[0,0] + xs[i + 1])),
-                int(_y(self.p0[1,0] + ys[i + 1]))
-            )        
+                int(_x(self.p0[0,0] + xs[i] / 2)),
+                int(_y(self.p0[1,0] + ys[i] / 2)),
+                int(_x(self.p0[0,0] + xs[i + 1] / 2)),
+                int(_y(self.p0[1,0] + ys[i + 1] / 2))
+            )
 
         p.end()
-
 
 
 def move_robot(p, dsl, dsr):
