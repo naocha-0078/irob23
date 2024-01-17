@@ -8,9 +8,8 @@ q = [[[[[0, 0, 0, 0, 0] for _ in range(avdiv)] for _ in range(adiv)] for _ in ra
 # print(q)
 
 obs, info = env.reset()
-for i in range(10000):
+for i in range(1000):
     p, v, a, av = obs[0], obs[1], obs[2], obs[3]
-    if i % 10 == 0 or p > 0.4: env.render()
     pd = int((p - (-4.80000021e+00)) / (4.80000021e+00 - (-4.80000021e+00)) * pdiv)
     vd = int((v - (-3.40282351e+38)) / (3.40282351e+38 - (-3.40282351e+38)) * vdiv)
     ad = int((a - (-4.18879031e-01)) / (4.18879031e-01 - (-4.18879031e-01)) * adiv)

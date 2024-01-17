@@ -40,6 +40,7 @@ class Mobrob(QMainWindow):
         self.sp = np.diag([1, 1, 0.1]) #sigma_p
         self.dsl = 0.0
         self.dsr = 0.0
+        self.t = 0  #step time
         self.initUI()
         self.timer = QTimer()
         self.timer.setInterval(1000 // 60)
@@ -49,9 +50,11 @@ class Mobrob(QMainWindow):
         
 
     def step(self):
+        self.t += 1
         self.p0 = move_robot(self.p0, self.dsl, self.dsr)
-        self.p = move_robot(self.p, self.dsl * (1 + np.random.randn() * 0.01), 
-                            self.dsr * (1 + np.random.randn() * 0.01)
+        self.p = move_robot(self.p,
+                            self.dsl * (1 + np.random.randn() * 0.1), 
+                            self.dsr * (1 + np.random.randn() * 0.1)
         )
 
         #prediction update
@@ -70,8 +73,15 @@ class Mobrob(QMainWindow):
             [1 / B, -1 / B]
         ])
 
-        su = np.diag([np.abs(self.dsr * 0.1),np.abs(self.dsl * 0.1)])
+        su = np.diag([np.abs(self.dsr * 0.01),np.abs(self.dsl * 0.01)])
         self.sp = jp.dot(self.sp).dot(jp.T) + ju.dot(su).dot(ju.T)
+
+        if self.t % (60 * 5) == 0:
+            p2 = self.p0 + np.array([[np.random.randn() * 0.05], [np.random.randn() * 0.05], [np.random.randn() * 0.05]])
+            s2 = np.diag([1, 1, 0.1])
+            k = self.sp.dot(np.linalg.inv(self.sp + s2))
+            self.p = self.p + k.dot(p2 - self.p)
+            self.sp = self.sp - k.dot(self.sp + s2).dot(k.T)
 
 
         self.draw()
@@ -146,11 +156,9 @@ class Mobrob(QMainWindow):
         return super().keyPressEvent(ev)
 
 
-    def draw(self):
-        p = QPainter(self.label.pixmap())
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        p.eraseRect(0, 0, WIDTH, HEIGHT)
-        p.setBrush(QColor(0x00ffff))
+    def draw_robot(self, p, pose, color):
+        # p = QPainter(self.label.pixmap())
+        p.setBrush(QColor(color))
 
         # ロボットサイズ更更
 
@@ -162,19 +170,26 @@ class Mobrob(QMainWindow):
         # )
 
         p.drawEllipse(
-            int(_x(self.p0[0,0] - B / 4)),
-            int(_y(self.p0[1,0] + B / 4)),
-            int(B * PX_PER_M / 2),
-            int(B * PX_PER_M / 2)
+            int(_x(pose[0,0] - B / 8)),
+            int(_y(pose[1,0] + B / 8)),
+            int(B * PX_PER_M / 4),
+            int(B * PX_PER_M / 4)
         )
 
         p.drawLine(   #ロボットの向いている方向
-            int(_x(self.p0[0,0])),
-            int(_y(self.p0[1,0])),
-            int(_x(self.p0[0,0] + np.cos(self.p0[2, 0]) * 0.5)),
-            int(_y(self.p0[1,0] + np.sin(self.p0[2, 0]) * 0.5))
+            int(_x(pose[0,0])),
+            int(_y(pose[1,0])),
+            int(_x(pose[0,0] + np.cos(pose[2, 0]) * 0.5 / 2)),
+            int(_y(pose[1,0] + np.sin(pose[2, 0]) * 0.5 / 2))
         )
         
+
+    def draw(self):
+        p = QPainter(self.label.pixmap())
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        p.eraseRect(0, 0, WIDTH, HEIGHT)
+        self.draw_robot(p, self.p0, 0x808080)   #真値　  gray
+        self.draw_robot(p, self.p, 0x000080)    #推定値  blue
 
         #Σの楕円
         sxy = self.sp[0:2, 0:2]
@@ -196,10 +211,10 @@ class Mobrob(QMainWindow):
             # )
 
             p.drawLine(
-                int(_x(self.p0[0,0] + xs[i] / 2)),
-                int(_y(self.p0[1,0] + ys[i] / 2)),
-                int(_x(self.p0[0,0] + xs[i + 1] / 2)),
-                int(_y(self.p0[1,0] + ys[i + 1] / 2))
+                int(_x(self.p0[0,0] + xs[i] / 4)),
+                int(_y(self.p0[1,0] + ys[i] / 4)),
+                int(_x(self.p0[0,0] + xs[i + 1] / 4)),
+                int(_y(self.p0[1,0] + ys[i + 1] / 4))
             )
 
         p.end()
